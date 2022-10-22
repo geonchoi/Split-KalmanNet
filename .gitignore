@@ -1,0 +1,8 @@
+splitkf
+.data
+.model_saved
+*.eps
+*.mp4
+
+__pycache__/
+*.py[cod]
