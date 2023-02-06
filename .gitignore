@@ -1,0 +1,15 @@
+splitkf
+.data
+.model_saved
+*.eps
+*.mp4
+*.xlsx
+*.eps
+*.mat
+*.npy
+실험결과
+
+
+
+__pycache__/
+*.py[cod]
