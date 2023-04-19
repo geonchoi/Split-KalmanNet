@@ -3,19 +3,18 @@ from GSSFiltering.filtering import Extended_Kalman_Filter
 from GSSFiltering.filtering import KalmanNet_Filter, Split_KalmanNet_Filter, KalmanNet_Filter_v2
 from GSSFiltering.trainer import Trainer
 from GSSFiltering.tester import Tester
+import configparser
 
+config = configparser.ConfigParser()
+config.read('./config.ini')
+train_iter = config['Train']['train_iter']
 
-TRAIN = False
 TRAIN = True
+# TRAIN = False
 
-train_iter = 100
-batch_size = 1
-alter_num = 1
 
 # S_KalmanNet
 test_list = ['3000', '4000', 'best']
-test_list = ['4000']
-test_list = ['100']
 
 loss_list_Kalman = []
 loss_list_Kalman_v2 = []
@@ -30,8 +29,6 @@ if TRAIN:
         data_path='./.data/NCLT/train/', 
         save_path='(NCLT) KalmanNet.pt',
         mode=0)
-    trainer_kalman.batch_size = batch_size
-    trainer_kalman.alter_num = alter_num
 
     # KalmanNet (architecture 2)
     trainer_kalman_v2 = Trainer(
@@ -40,8 +37,7 @@ if TRAIN:
         data_path='./.data/NCLT/train/', 
         save_path='(NCLT, v2) KalmanNet.pt',
         mode=0)
-    trainer_kalman_v2.batch_size = batch_size
-    trainer_kalman_v2.alter_num = alter_num    
+
 
     # S_KalmanNet 
     trainer_split = Trainer(
@@ -50,9 +46,6 @@ if TRAIN:
         data_path='./.data/NCLT/train/', 
         save_path='(NCLT) Split_KalmanNet.pt',
         mode=1)
-
-    trainer_split.batch_size = batch_size
-    trainer_split.alter_num = alter_num    
 
     
     for i in range(train_iter):

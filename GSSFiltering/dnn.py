@@ -1,15 +1,14 @@
 import torch
 import torch.nn as nn
+import configparser
 
-# For NCLT, SyntheticNL (general)
-nGRU = 2
-gru_scale_s = 2
-gru_scale_k = 4
+config = configparser.ConfigParser()
+config.read('./config.ini')
 
-# For Time-Varyling
-nGRU = 1
-gru_scale_s = 1
-gru_scale_k = 2
+nGRU = int(config['DNN.size']['nGRU'])
+gru_scale_s = int(config['DNN.size']['gru_scale_s'])
+gru_scale_k = int(config['DNN.size']['gru_scale_k'])
+
 
 
 class DNN_SKalmanNet_GSS(torch.nn.Module):
@@ -23,17 +22,12 @@ class DNN_SKalmanNet_GSS(torch.nn.Module):
         H1 = (x_dim + y_dim) * (10) * 8
         H2 = (x_dim * y_dim) * 1 * (4)
 
-        # For Time-Varyling
-        H1 = (x_dim + y_dim) * (5) * 4
-        H2 = (x_dim * y_dim) * 1 * (4)
+        # # For Time-Varyling
+        # H1 = (x_dim + y_dim) * (5) * 4
+        # H2 = (x_dim * y_dim) * 1 * (4)
 
         self.input_dim_1 = (self.x_dim) * 2 + (self.y_dim) + (self.x_dim * self.y_dim)
-        # self.input_dim_1 = (self.x_dim) * 2 + 0*(self.y_dim) + (self.x_dim * self.y_dim)
-        # self.input_dim_1 = (self.x_dim) * 2 + 3 * (self.y_dim) + (self.x_dim * self.y_dim)
-
         self.input_dim_2 = (self.y_dim) * 2 + (self.y_dim) + (self.x_dim * self.y_dim)
-        # self.input_dim_2 = (self.y_dim) * 2 + 0*(self.y_dim) + (self.x_dim * self.y_dim)
-        # self.input_dim_2 = (self.x_dim) * 2 + 3 * (self.y_dim) + (self.x_dim * self.y_dim)
 
         self.output_dim_1 = (self.x_dim * self.x_dim) 
         self.output_dim_2 = (self.y_dim * self.y_dim)
@@ -88,8 +82,7 @@ class DNN_SKalmanNet_GSS(torch.nn.Module):
     def forward(self, state_inno, observation_inno, diff_state, diff_obs, linearization_error, Jacobian):
 
         input1 = torch.cat((state_inno, diff_state, linearization_error, Jacobian), axis=0).reshape(-1)
-        # input1 = torch.cat((state_inno, diff_state, Jacobian), axis=0).reshape(-1)
-        # input1 = torch.cat((state_inno, observation_inno, diff_state, diff_obs, linearization_error, Jacobian), axis=0).reshape(-1)
+        input2 = torch.cat((observation_inno, diff_obs, linearization_error, Jacobian), axis=0).reshape(-1)
 
         l1_out = self.l1(input1)
         GRU_in = torch.zeros(self.seq_len_input, self.batch_size, self.gru_input_dim)
@@ -97,10 +90,6 @@ class DNN_SKalmanNet_GSS(torch.nn.Module):
         GRU_out, self.hn1 = self.GRU1(GRU_in, self.hn1)
         l2_out = self.l2(GRU_out)
         Pk = l2_out.reshape((self.x_dim, self.x_dim))
-
-        input2 = torch.cat((observation_inno, diff_obs, linearization_error, Jacobian), axis=0).reshape(-1)
-        # input2 = torch.cat((observation_inno, diff_obs, Jacobian), axis=0).reshape(-1)
-        # input2 = torch.cat((state_inno, observation_inno, diff_state, diff_obs, linearization_error, Jacobian), axis=0).reshape(-1)
 
         l3_out = self.l3(input2)
         GRU_in = torch.zeros(self.seq_len_input, self.batch_size, self.gru_input_dim)
@@ -122,7 +111,6 @@ class DNN_KalmanNet_GSS(torch.nn.Module):
         H2 = (x_dim * y_dim) * 1 * (4)
 
         self.input_dim = (self.x_dim * 2) + (self.y_dim * 2)
-        # self.input_dim = (self.x_dim * 1) + (self.y_dim * 1)
         self.output_dim = self.x_dim * self.y_dim
 
         # input layer
@@ -156,7 +144,6 @@ class DNN_KalmanNet_GSS(torch.nn.Module):
     def forward(self, state_inno, observation_inno, diff_state, diff_obs):
 
         input = torch.cat((state_inno, observation_inno, diff_state, diff_obs), axis=0).reshape(-1)
-        # input = torch.cat((state_inno, observation_inno), axis=0).reshape(-1)
         l1_out = self.l1(input)
         GRU_in = torch.zeros(self.seq_len_input, self.batch_size, self.gru_input_dim)
         GRU_in[0,0,:] = l1_out
@@ -257,11 +244,6 @@ class KNet_architecture_v2(torch.nn.Module):
                 nn.Linear(self.d_input_FC7, self.d_output_FC7),
                 nn.ReLU())
 
-    # def initialize_hidden(self):
-    #     # Q, Sigma, S, GRU hn들 초기화
-    #     self.h_Q = self.h_Q_init.detach().clone()
-    #     self.h_Sigma = self.h_Sigma_init.detach().clone()
-    #     self.h_S = self.h_S_init.detach().clone()
     def initialize_hidden(self):
         weight = next(self.parameters()).data
         hidden = weight.new(1, self.batch_size, self.d_hidden_S).zero_()

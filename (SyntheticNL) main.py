@@ -4,6 +4,14 @@ from GSSFiltering.filtering import KalmanNet_Filter, Split_KalmanNet_Filter, Kal
 from GSSFiltering.trainer import Trainer
 from GSSFiltering.tester import Tester
 import numpy as np
+import configparser
+import os
+
+if not os.path.exists('./.results'):
+    os.mkdir('./.results')
+
+config = configparser.ConfigParser()
+config.read('./config.ini')
 
 TRAIN = True
 # TRAIN = False
@@ -13,9 +21,7 @@ if TRAIN:
     SyntheticNLModel(mode='valid').generate_data()
 SyntheticNLModel(mode='test').generate_data()
 
-train_iter = 500
-batch_size = 1
-alter_num = 1
+train_iter = int(config['Train']['train_iter'])
 
 # S_KalmanNet
 test_list = ['500']
@@ -37,8 +43,8 @@ if TRAIN:
         data_path='./.data/syntheticNL/train/', 
         save_path='(syntheticNL) KalmanNet.pt',
         mode=0)
-    trainer_kalman.batch_size = batch_size
-    trainer_kalman.alter_num = alter_num
+    # trainer_kalman.batch_size = batch_size
+    # trainer_kalman.alter_num = alter_num
 
     # KalmanNet (architecture 2)
     trainer_kalman_v2 = Trainer(
@@ -47,8 +53,8 @@ if TRAIN:
         data_path='./.data/syntheticNL/train/', 
         save_path='(syntheticNL, v2) KalmanNet.pt',
         mode=0)
-    trainer_kalman_v2.batch_size = batch_size
-    trainer_kalman_v2.alter_num = alter_num    
+    # trainer_kalman_v2.batch_size = batch_size
+    # trainer_kalman_v2.alter_num = alter_num    
 
     # S_KalmanNet 
     trainer_split = Trainer(
@@ -57,8 +63,8 @@ if TRAIN:
         data_path='./.data/syntheticNL/train/', 
         save_path='(syntheticNL) Split_KalmanNet.pt',
         mode=1)
-    trainer_split.batch_size = batch_size
-    trainer_split.alter_num = alter_num    
+    # trainer_split.batch_size = batch_size
+    # trainer_split.alter_num = alter_num    
 
     
     for i in range(train_iter):
@@ -118,10 +124,10 @@ if TRAIN:
                 )   
     loss_ekf = [validator_ekf.loss.item()]
 
-    np.save('valid_loss_ekf.npy', np.array(loss_ekf))
-    np.save('valid_loss_kalman.npy', np.array(valid_loss_Kalman))
-    np.save('valid_loss_kalman_v2.npy', np.array(valid_loss_Kalman_v2))
-    np.save('valid_loss_split.npy', np.array(valid_loss_Split))
+    np.save('./.results/valid_loss_ekf.npy', np.array(loss_ekf))
+    np.save('./.results/valid_loss_kalman.npy', np.array(valid_loss_Kalman))
+    np.save('./.results/valid_loss_kalman_v2.npy', np.array(valid_loss_Kalman_v2))
+    np.save('./.results/valid_loss_split.npy', np.array(valid_loss_Split))
 
  
 tester_ekf = Tester(
