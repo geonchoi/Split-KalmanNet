@@ -25,6 +25,7 @@ class Tester():
         self.filter = filter
         if not isinstance(filter, Extended_Kalman_Filter):
             self.filter.kf_net = torch.load(model_path)
+            self.filter.kf_net.initialize_hidden()
         self.x_dim = self.filter.x_dim
         self.y_dim = self.filter.y_dim
         self.data_path = data_path
@@ -55,26 +56,26 @@ class Tester():
                     else:
                         print(f'Testing {i} / {self.data_num} of {self.model_path}')
                 
-                self.filter.state_post = self.data_x[i,:,0].reshape((-1,1))  ### !!!! 추가한거!!
-                if not self.is_mismatch:
-                    self.filter.GSSModel.set_v_dB(30)
-                    self.filter.R = self.filter.GSSModel.cov_r
+                self.filter.state_post = self.data_x[i,:,0].reshape((-1,1))
+                # if not self.is_mismatch:
+                #     self.filter.GSSModel.set_v_dB(30)
+                #     self.filter.R = self.filter.GSSModel.cov_r
                 for ii in range(1, self.seq_len):
-                    if not self.is_mismatch:
-                        # if ii % 100 == 1:
-                        if ii % 10 == 1:
-                            # print(f'Before v_dB = {self.filter.GSSModel.v_dB}')
-                            # self.filter.GSSModel.set_v_dB((self.filter.GSSModel.v_dB + 10) % 50)
-                            self.filter.GSSModel.set_v_dB((self.filter.GSSModel.v_dB + 1) % 50)
-                            self.filter.R = self.filter.GSSModel.cov_r
-                            # print(f'After v_dB = {self.filter.GSSModel.v_dB}')
+                    # if not self.is_mismatch:
+                    #     # if ii % 100 == 1:
+                    #     if ii % 10 == 1:
+                    #         # print(f'Before v_dB = {self.filter.GSSModel.v_dB}')
+                    #         # self.filter.GSSModel.set_v_dB((self.filter.GSSModel.v_dB + 10) % 50)
+                    #         self.filter.GSSModel.set_v_dB((self.filter.GSSModel.v_dB + 1) % 50)
+                    #         self.filter.R = self.filter.GSSModel.cov_r
+                    #         # print(f'After v_dB = {self.filter.GSSModel.v_dB}')
 
                     self.filter.filtering(self.data_y[i,:,ii].reshape((-1,1)))
                 x_hat[i] = self.filter.state_history[:,-self.seq_len:]                
                 self.filter.reset(clean_history=False)
 
             end_time = time.monotonic()
-            print(timedelta(seconds=end_time - start_time))
+            # print(timedelta(seconds=end_time - start_time))
 
             torch.save(x_hat, data_path + self.result_path + 'x_hat.pt')
 

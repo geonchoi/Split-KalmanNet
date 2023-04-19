@@ -199,7 +199,6 @@ class Split_KalmanNet_Filter():
 
         self.kf_net = DNN_SKalmanNet_GSS(self.x_dim, self.y_dim)
         self.init_state = GSSModel.init_state
-        # self.state_history = self.init_state.detach().clone()
         self.reset(clean_history=True)
   
 
