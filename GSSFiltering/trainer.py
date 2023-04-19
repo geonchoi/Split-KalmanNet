@@ -5,6 +5,8 @@ from GSSFiltering.tester import Tester
 import os
 import configparser
 
+config = configparser.ConfigParser()
+config.read('./config.ini')
 
 config = configparser.ConfigParser()
 config.read('./config.ini')
